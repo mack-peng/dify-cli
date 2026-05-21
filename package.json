@@ -1,7 +1,25 @@
 {
-  "name": "dify-cli",
+  "name": "@orangemust/dify-cli",
   "version": "0.1.0",
   "description": "CLI for interacting with Dify applications",
+  "author": "mack-peng",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mack-peng/dify-cli.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mack-peng/dify-cli/issues"
+  },
+  "homepage": "https://github.com/mack-peng/dify-cli#readme",
+  "keywords": [
+    "dify",
+    "cli",
+    "chat",
+    "workflow",
+    "knowledge",
+    "ai"
+  ],
   "bin": {
     "dify-cli": "./bin/dify.js"
   },

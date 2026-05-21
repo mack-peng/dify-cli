@@ -1,11 +1,13 @@
-# dify-cli
+# @orangemust/dify-cli
 
 A command-line interface for interacting with Dify applications.
+
+[![npm version](https://img.shields.io/npm/v/@orangemust/dify-cli.svg)](https://www.npmjs.com/package/@orangemust/dify-cli)
 
 ## Installation
 
 ```bash
-npm install -g dify-cli
+npm install -g @orangemust/dify-cli
 ```
 
 Or link locally for development:
