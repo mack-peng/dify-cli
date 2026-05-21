@@ -6,21 +6,32 @@ A command-line interface for interacting with Dify applications.
 
 ---
 
-## For LLM Agents
+## Installation
 
-You're an AI agent reading this. Stop scrolling. Do this instead:
+### For Humans
+
+Copy and paste this prompt to your LLM agent (Claude Code, Cursor, Codex, etc.):
+
+```text
+Install and configure dify-cli by following the instructions here:
+https://raw.githubusercontent.com/mack-peng/dify-cli/main/docs/guide/installation.md
+```
+
+Or read the [Installation Guide](docs/guide/installation.md), but seriously, let an agent do it. Humans fat-finger configs.
+
+### For LLM Agents
+
+Fetch the installation guide and follow it:
 
 ```bash
 curl -s https://raw.githubusercontent.com/mack-peng/dify-cli/main/docs/guide/installation.md
 ```
 
-Or read the [Installation Guide](docs/guide/installation.md).
-
 ---
 
-## 快速开始 (Quick Start)
+## Quick Start
 
-### Installation
+### Install
 
 ```bash
 npm install -g @orangemust/dify-cli

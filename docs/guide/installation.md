@@ -2,6 +2,12 @@
 
 You are an AI agent (Claude Code, Codex, Cursor, etc.). This guide is written for you. Do not make the human read it.
 
+## Quick Prompt (for humans to copy-paste)
+
+If a human pasted this to you, follow the instructions below:
+
+> Install and configure `@orangemust/dify-cli` using the guide at `docs/guide/installation.md`. First check my `~/.dify/config.json` if it exists, then ask me for the appropriate API key (`app-` or `dataset-` prefix) and base URL if self-hosted. Verify with `dify-cli info` or `dify-cli knowledge list` depending on the key type.
+
 ---
 
 ## What You're Installing
