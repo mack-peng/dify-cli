@@ -1,107 +1,50 @@
 # AGENTS.md
 
-This file provides guidance for AI agents working on the dify-cli codebase.
+## Project
 
-## Project Overview
+`@orangemust/dify-cli` — CLI for Dify apps. Entrypoint: `bin/dify.js` → `require('../dist/index')`.  
+Build: `npm run build` (= `tsc`, which is both compiler + typecheck — no separate lint/typecheck step).  
+No test framework exists in this repo.  
+Single dependency: `commander`. Dev: `typescript`, `@types/node`.
 
-dify-cli is a TypeScript-based CLI tool for interacting with Dify applications. It follows the architecture patterns from playwright-cli.
+## API Key Types (critical)
+
+Dify has **two non-interchangeable** key types. Config holds one at a time:
+
+| Prefix | Used by |
+|--------|---------|
+| `app-*` | `info`, `chat`, `completion`, `chatflow`, `workflow`, `conversation`, `file`, `audio`, `feedback`, `annotation` |
+| `dataset-*` | `knowledge` (datasets, documents, segments) |
+
+Override per-command: `dify-cli <subcommand> --api-key <key>`
 
 ## Architecture
 
 ```
 src/
-├── index.ts           # Entry point - parses CLI args
-├── program.ts         # Command registration via decorateProgram()
-├── bundle.ts          # Central re-exports
-├── api/               # API client layer (HTTP + SSE)
-│   ├── client.ts      # Base DifyClient class
-│   └── *.ts           # Domain-specific API clients
-├── commands/          # CLI command handlers
-│   └── *.ts           # Each file registers related commands
-└── utils/
-    ├── config.ts      # Config file management (~/.dify/config.json)
-    ├── output.ts      # JSON output formatting
-    └── streaming.ts   # SSE stream parser
+├── index.ts           # program.parse(process.argv)
+├── program.ts         # decorateProgram(): global opts + register*Commands()
+├── bundle.ts          # Re-exports for library consumers
+├── api/client.ts      # DifyClient — config resolution, request(), requestStream(), uploadFile()
+├── api/*.ts           # Domain-specific API classes (ChatAPI, KnowledgeAPI, etc.)
+├── commands/*.ts      # register*Commands(program) functions
+└── utils/             # config, output (JSON.stringify), streaming (SSE parser)
 ```
 
 ## Key Patterns
 
-### Command Registration
+- **Command handler**: `action(async (args..., options, command) => { const opts = command.optsWithGlobals(); ... })`
+- **Config priority**: CLI flags (`--api-key`, `--base-url`, `--user`) → env vars (`DIFY_API_KEY`, `DIFY_BASE_URL`, `DIFY_DEFAULT_USER`) → `~/.dify/config.json`
+- **Default user**: `cli-user` (override via `--user` flag or `DIFY_DEFAULT_USER` env)
+- **Output**: `formatOutput(data)` = `JSON.stringify(data, null, 2)`
+- **Default mode**: `blocking`. Pass `--mode streaming` for SSE (uses `parseSSEStream()` generator)
+- **`chat send`** supports stdin piping (reads from stdin if no message arg)
+- **`knowledge`** has alias `kb`
+- **Error format**: `API <status_code>: <detail>` — all commands catch and `process.exit(1)`
 
-Each command module exports a `register*Commands(program)` function:
+## Adding a Command
 
-```typescript
-export function registerChatCommands(program: Command): void {
-  const chat = program.command('chat');
-  chat.command('send [message]')
-    .action(async (message, options, command) => {
-      const opts = command.optsWithGlobals(); // Access global options
-      const client = new DifyClient({ apiKey: opts.apiKey, baseUrl: opts.baseUrl });
-      // ...
-    });
-}
-```
-
-### API Client Usage
-
-```typescript
-const client = new DifyClient({ apiKey, baseUrl });
-const chatAPI = new ChatAPI(client);
-
-// Blocking request
-const response = await chatAPI.sendMessage({ query, user, response_mode: 'blocking' });
-
-// Streaming request
-const stream = await chatAPI.sendMessageStream({ query, user, response_mode: 'streaming' });
-for await (const event of parseSSEStream(stream)) {
-  console.log(JSON.stringify(event));
-}
-```
-
-### Configuration Priority
-
-1. CLI flags (`--api-key`, `--base-url`)
-2. Environment variables (`DIFY_API_KEY`, `DIFY_BASE_URL`)
-3. Config file (`~/.dify/config.json`)
-
-## Testing Commands
-
-```bash
-# Build
-npx tsc
-
-# Test help
-dify-cli --help
-dify-cli chat --help
-dify-cli knowledge document --help
-
-# Test with real API
-dify-cli config init --api-key <key>
-dify-cli info
-dify-cli chat send "Hello"
-```
-
-## Code Style
-
-- No comments unless necessary
-- TypeScript strict mode
-- CommonJS module output
-- Default export: JSON format
-- Default response mode: blocking
-
-## Adding New Commands
-
-1. Create `src/api/<domain>.ts` with API client class
-2. Create `src/commands/<domain>.ts` with `register*Commands` function
-3. Export from `src/commands/index.ts`
+1. Create `src/api/<domain>.ts` with an API client class (extends DifyClient usage)
+2. Create `src/commands/<domain>.ts` exporting `register<Domain>Commands(program)`
+3. Re-export from `src/commands/index.ts`
 4. Import and call in `src/program.ts`
-
-## Error Handling
-
-All API errors are caught and displayed as:
-
-```
-API <status_code>: <error_message>
-```
-
-Commands exit with code 1 on error.
