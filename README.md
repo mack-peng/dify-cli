@@ -25,6 +25,11 @@ npm link
 dify-cli config init --api-key <your-api-key>
 ```
 
+> `--base-url` 可选，默认为 `https://api.dify.ai/v1`。自部署 Dify 需指定：
+> ```bash
+> dify-cli config init --api-key <key> --base-url https://your-dify.com/v1
+> ```
+
 2. Send a message to a Chat app:
 
 ```bash

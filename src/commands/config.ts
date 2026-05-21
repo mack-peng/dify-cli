@@ -11,13 +11,14 @@ export function registerConfigCommands(program: Command): void {
     .option('--api-key <key>', 'Dify API key')
     .option('--base-url <url>', 'Dify API base URL (default: https://api.dify.ai/v1)')
     .option('--default-user <user>', 'Default user identifier')
-    .action((options) => {
+    .action(function(this: Command) {
+      const opts = this.optsWithGlobals();
       const cm = new ConfigManager();
       const existing = cm.getAll();
       cm.save({
-        apiKey: options.apiKey || existing.apiKey,
-        baseUrl: options.baseUrl || existing.baseUrl || 'https://api.dify.ai/v1',
-        defaultUser: options.defaultUser || existing.defaultUser || 'cli-user',
+        apiKey: opts.apiKey || existing.apiKey,
+        baseUrl: opts.baseUrl || existing.baseUrl || 'https://api.dify.ai/v1',
+        defaultUser: opts.defaultUser || existing.defaultUser || 'cli-user',
       });
       console.log(formatOutput({ message: 'Configuration saved', path: process.env.HOME + '/.dify/config.json' }));
     });
