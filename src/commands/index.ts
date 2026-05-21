@@ -1,0 +1,12 @@
+export { registerConfigCommands } from './config';
+export { registerInfoCommands } from './info';
+export { registerChatCommands } from './chat';
+export { registerCompletionCommands } from './completion';
+export { registerChatflowCommands } from './chatflow';
+export { registerWorkflowCommands } from './workflow';
+export { registerKnowledgeCommands } from './knowledge';
+export { registerConversationCommands } from './conversation';
+export { registerFileCommands } from './file';
+export { registerAudioCommands } from './audio';
+export { registerFeedbackCommands } from './feedback';
+export { registerAnnotationCommands } from './annotation';

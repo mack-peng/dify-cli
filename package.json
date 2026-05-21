@@ -1,0 +1,25 @@
+{
+  "name": "dify-cli",
+  "version": "0.1.0",
+  "description": "CLI for interacting with Dify applications",
+  "bin": {
+    "dify-cli": "./bin/dify.js"
+  },
+  "files": [
+    "bin/",
+    "dist/"
+  ],
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "commander": "^12.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.4.0"
+  }
+}
