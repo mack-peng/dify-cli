@@ -4,70 +4,101 @@ A command-line interface for interacting with Dify applications.
 
 [![npm version](https://img.shields.io/npm/v/@orangemust/dify-cli.svg)](https://www.npmjs.com/package/@orangemust/dify-cli)
 
-## Installation
+---
+
+## For LLM Agents
+
+You're an AI agent reading this. Stop scrolling. Do this instead:
+
+```bash
+curl -s https://raw.githubusercontent.com/mack-peng/dify-cli/main/docs/guide/installation.md
+```
+
+Or read the [Installation Guide](docs/guide/installation.md).
+
+---
+
+## 快速开始 (Quick Start)
+
+### Installation
 
 ```bash
 npm install -g @orangemust/dify-cli
+
+# Or run without installing:
+# npx @orangemust/dify-cli chat send "hello"
 ```
 
-Or link locally for development:
+### 1. Configure API Key
+
+Dify 有两种 API Key，**互不通用**。配置哪个 key，后续命令就操作哪个资源。
 
 ```bash
-cd dify-cli
-npm link
+# 操作应用（chat/completion/workflow）用 app- 开头的 key
+dify-cli config init --api-key app-xxxx
+
+# 操作知识库用 dataset- 开头的 key
+dify-cli config init --api-key dataset-xxxx
+
+# 自部署需指定 base-url
+dify-cli config init --api-key app-xxxx --base-url https://dify.example.com/v1
 ```
 
-## Quick Start
+> 切换操作对象时重新 `config init`，或用 `--api-key` 临时覆盖：
+> `dify-cli chat send "hello" --api-key app-xxxx`
+> `dify-cli knowledge list --api-key dataset-xxxx`
 
-1. Initialize configuration with your Dify API key:
-
-```bash
-dify-cli config init --api-key <your-api-key>
-```
-
-> `--base-url` 可选，默认为 `https://api.dify.ai/v1`。自部署 Dify 需指定：
-> ```bash
-> dify-cli config init --api-key <key> --base-url https://your-dify.com/v1
-> ```
-
-2. Send a message to a Chat app:
+### 2. Try It
 
 ```bash
-dify-cli chat send "Hello, how are you?"
-```
+# 如果配了 app key
+dify-cli info
 
-3. List knowledge bases:
-
-```bash
+# 如果配了 dataset key
 dify-cli knowledge list
 ```
 
+---
+
+## API Keys
+
+| Type | Prefix | Commands |
+|------|--------|----------|
+| App Key | `app-` | `info`, `chat`, `completion`, `chatflow`, `workflow`, `conversation`, `file`, `audio`, `feedback`, `annotation` |
+| Dataset Key | `dataset-` | `knowledge` (datasets, documents, segments) |
+
+Config file (`~/.dify/config.json`) holds one key at a time. Switch by re-running `config init` or override per-command with `--api-key`.
+
+---
+
 ## Configuration
 
-Configuration is stored in `~/.dify/config.json`. You can manage it via:
-
 ```bash
-# Initialize with all options
+# Initialize
 dify-cli config init --api-key <key> --base-url <url> --default-user <user>
 
 # Set individual values
 dify-cli config set apiKey <key>
 dify-cli config set baseUrl https://api.dify.ai/v1
 
-# Get config values
+# Get config
 dify-cli config get
 dify-cli config get apiKey
 ```
 
 Priority: CLI flags > Environment variables > Config file
 
-Environment variables:
-- `DIFY_API_KEY` - API key
-- `DIFY_BASE_URL` - API base URL (default: `https://api.dify.ai/v1`)
+```
+DIFY_API_KEY       API key
+DIFY_BASE_URL      API base URL (default: https://api.dify.ai/v1)
+DIFY_DEFAULT_USER  User identifier (default: cli-user)
+```
+
+---
 
 ## Commands
 
-### App Information
+### App Info
 
 ```bash
 dify-cli info                    # Get app info
@@ -79,18 +110,18 @@ dify-cli site                    # Get WebApp settings
 ### Chat App
 
 ```bash
-dify-cli chat send "message"                    # Send message (blocking)
-dify-cli chat send "message" --mode streaming   # Send message (streaming)
+dify-cli chat send "message"                    # Blocking
+dify-cli chat send "message" --mode streaming   # Streaming
 dify-cli chat send "message" -c <conversation_id>  # Continue conversation
 dify-cli chat stop <task_id>                    # Stop generation
-dify-cli chat feedback <message_id> -r like     # Submit feedback
-dify-cli chat suggested <message_id>            # Get suggested questions
+dify-cli chat feedback <message_id> -r like     # Feedback
+dify-cli chat suggested <message_id>            # Suggested questions
 ```
 
 ### Completion App
 
 ```bash
-dify-cli completion send "prompt"               # Send prompt
+dify-cli completion send "prompt"
 dify-cli completion send "prompt" --mode streaming
 dify-cli completion stop <task_id>
 ```
@@ -98,7 +129,7 @@ dify-cli completion stop <task_id>
 ### Chatflow App
 
 ```bash
-dify-cli chatflow send "message"                # Send message
+dify-cli chatflow send "message"
 dify-cli chatflow stop <task_id>
 dify-cli chatflow feedback <message_id> -r like
 ```
@@ -106,23 +137,23 @@ dify-cli chatflow feedback <message_id> -r like
 ### Workflow App
 
 ```bash
-dify-cli workflow run                           # Run workflow
+dify-cli workflow run
 dify-cli workflow run --inputs '{"key":"value"}'
 dify-cli workflow stop <task_id>
-dify-cli workflow logs                          # List workflow logs
-dify-cli workflow detail <run_id>               # Get run details
+dify-cli workflow logs
+dify-cli workflow detail <run_id>
 ```
 
 ### Knowledge Base
 
 ```bash
-dify-cli knowledge list                         # List knowledge bases
-dify-cli knowledge create "My Knowledge"        # Create knowledge base
-dify-cli knowledge get <dataset_id>             # Get details
+dify-cli knowledge list
+dify-cli knowledge create "My Knowledge"
+dify-cli knowledge get <dataset_id>
 dify-cli knowledge update <dataset_id> --name "New Name"
 dify-cli knowledge delete <dataset_id>
 
-# Document operations
+# Documents
 dify-cli knowledge document list <dataset_id>
 dify-cli knowledge document create-text <dataset_id> --name "Doc" --text "content"
 dify-cli knowledge document create-file <dataset_id> --file ./doc.pdf
@@ -130,35 +161,35 @@ dify-cli knowledge document get <dataset_id> <document_id>
 dify-cli knowledge document delete <dataset_id> <document_id>
 dify-cli knowledge document status <dataset_id> <batch>
 
-# Segment operations
+# Segments
 dify-cli knowledge segment list <dataset_id> <document_id>
 dify-cli knowledge segment create <dataset_id> <document_id> --content "text"
 dify-cli knowledge segment update <dataset_id> <document_id> <segment_id> --content "text"
 dify-cli knowledge segment delete <dataset_id> <document_id> <segment_id>
 ```
 
-### Conversation Management
+### Conversation
 
 ```bash
-dify-cli conversation list                      # List conversations
-dify-cli conversation get <conversation_id>     # Get messages
+dify-cli conversation list
+dify-cli conversation get <conversation_id>
 dify-cli conversation rename <conversation_id> -n "New Name"
 dify-cli conversation delete <conversation_id>
 dify-cli conversation variables <conversation_id>
 ```
 
-### File Operations
+### File
 
 ```bash
-dify-cli file upload <file_path>               # Upload file
-dify-cli file preview <file_id>                # Download file
+dify-cli file upload <file_path>
+dify-cli file preview <file_id>
 ```
 
-### Audio Operations
+### Audio
 
 ```bash
-dify-cli audio to-text <audio_file>            # Speech to text
-dify-cli audio to-audio "text to speak"        # Text to speech
+dify-cli audio to-text <audio_file>
+dify-cli audio to-audio "text to speak"
 ```
 
 ### Feedback
@@ -174,32 +205,27 @@ dify-cli annotation create -q "question" -a "answer"
 dify-cli annotation list
 dify-cli annotation update <id> -q "new question" -a "new answer"
 dify-cli annotation delete <id>
-dify-cli annotation reply-config                # Get reply config
+dify-cli annotation reply-config
 ```
+
+---
 
 ## Global Options
 
-All commands support these global options:
+```
+--api-key <key>      Override API key
+--base-url <url>     Override base URL
+--user <id>          User identifier (default: cli-user)
+```
 
-```
---api-key <key>      Dify API key (overrides config and env)
---base-url <url>     Dify API base URL
---user <id>          User identifier
-```
+---
 
 ## Development
 
 ```bash
-# Install dependencies
 npm install
-
-# Build
 npm run build
-
-# Watch mode
 npm run watch
-
-# Type check
 npx tsc --noEmit
 ```
 
