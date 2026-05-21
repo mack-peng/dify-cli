@@ -167,7 +167,9 @@ dify-cli knowledge delete <dataset_id>
 # Documents
 dify-cli knowledge document list <dataset_id>
 dify-cli knowledge document create-text <dataset_id> --name "Doc" --text "content"
+dify-cli knowledge document create-text <dataset_id> --name "Doc" --text "content" --process-rule-mode custom --max-tokens 500 --overlap 50
 dify-cli knowledge document create-file <dataset_id> --file ./doc.pdf
+dify-cli knowledge document create-file <dataset_id> --file ./doc.pdf --process-rule-mode custom --separator "\n" --max-tokens 500 --overlap 50 --remove-extra-spaces
 dify-cli knowledge document get <dataset_id> <document_id>
 dify-cli knowledge document delete <dataset_id> <document_id>
 dify-cli knowledge document status <dataset_id> <batch>
