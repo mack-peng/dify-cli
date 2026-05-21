@@ -5,6 +5,35 @@ import { DifyClient } from '../api/client';
 import { KnowledgeAPI } from '../api/knowledge';
 import { formatOutput } from '../utils/output';
 
+function buildProcessRule(options: Record<string, any>): Record<string, any> | undefined {
+  if (!options.processRuleMode) return undefined;
+  const processRule: Record<string, any> = { mode: options.processRuleMode };
+  if (options.processRuleMode === 'custom') {
+    const rules: Record<string, any> = {};
+    const preProcessingRules: { id: string; enabled: boolean }[] = [];
+    if (options.removeExtraSpaces !== undefined) {
+      preProcessingRules.push({ id: 'remove_extra_spaces', enabled: options.removeExtraSpaces });
+    }
+    if (options.removeUrlsEmails !== undefined) {
+      preProcessingRules.push({ id: 'remove_urls_emails', enabled: options.removeUrlsEmails });
+    }
+    if (preProcessingRules.length > 0) {
+      rules.pre_processing_rules = preProcessingRules;
+    }
+    const segmentation: Record<string, any> = {};
+    if (options.separator !== undefined) segmentation.separator = options.separator;
+    if (options.maxTokens !== undefined) segmentation.max_tokens = options.maxTokens;
+    if (options.overlap !== undefined) segmentation.chunk_overlap = options.overlap;
+    if (Object.keys(segmentation).length > 0) {
+      rules.segmentation = segmentation;
+    }
+    if (Object.keys(rules).length > 0) {
+      processRule.rules = rules;
+    }
+  }
+  return processRule;
+}
+
 export function registerKnowledgeCommands(program: Command): void {
   const knowledge = program.command('knowledge').description('Knowledge base management').alias('kb');
 
@@ -139,18 +168,31 @@ export function registerKnowledgeCommands(program: Command): void {
     .requiredOption('--name <text>', 'Document name')
     .requiredOption('--text <content>', 'Document text content')
     .option('--doc-type <type>', 'Document type')
-    .option('--indexing-technique <technique>', 'Indexing technique')
+    .option('--indexing-technique <technique>', 'Indexing technique (high_quality, economy)')
+    .option('--doc-form <form>', 'Document form (text_model, qa_model)')
+    .option('--doc-language <lang>', 'Document language')
+    .option('--process-rule-mode <mode>', 'Process rule mode (automatic, custom, hierarchical)')
+    .option('--separator <sep>', 'Chunk separator (e.g., "\\\\n")')
+    .option('--max-tokens <n>', 'Max tokens per chunk', parseInt)
+    .option('--overlap <n>', 'Chunk overlap', parseInt)
+    .option('--remove-extra-spaces', 'Remove extra spaces (pre-processing)')
+    .option('--remove-urls-emails', 'Remove URLs and email addresses (pre-processing)')
     .action(async (datasetId: string, options, command) => {
       const opts = command.optsWithGlobals();
       const client = new DifyClient({ apiKey: opts.apiKey, baseUrl: opts.baseUrl });
       const api = new KnowledgeAPI(client);
       try {
-        const result = await api.createDocumentByText(datasetId, {
+        const params: Record<string, any> = {
           name: options.name,
           text: options.text,
           doc_type: options.docType,
           indexing_technique: options.indexingTechnique,
-        });
+          doc_form: options.docForm,
+          doc_language: options.docLanguage,
+        };
+        const processRule = buildProcessRule(options);
+        if (processRule) params.process_rule = processRule;
+        const result = await api.createDocumentByText(datasetId, params as any);
         console.log(formatOutput(result));
       } catch (err: any) {
         console.error(err.message);
@@ -163,7 +205,15 @@ export function registerKnowledgeCommands(program: Command): void {
     .description('Create a document from a file')
     .requiredOption('--file <path>', 'File path')
     .option('--name <text>', 'Document name (defaults to filename)')
-    .option('--indexing-technique <technique>', 'Indexing technique')
+    .option('--indexing-technique <technique>', 'Indexing technique (high_quality, economy)')
+    .option('--doc-form <form>', 'Document form (text_model, qa_model)')
+    .option('--doc-language <lang>', 'Document language')
+    .option('--process-rule-mode <mode>', 'Process rule mode (automatic, custom, hierarchical)')
+    .option('--separator <sep>', 'Chunk separator (e.g., "\\\\n")')
+    .option('--max-tokens <n>', 'Max tokens per chunk', parseInt)
+    .option('--overlap <n>', 'Chunk overlap', parseInt)
+    .option('--remove-extra-spaces', 'Remove extra spaces (pre-processing)')
+    .option('--remove-urls-emails', 'Remove URLs and email addresses (pre-processing)')
     .action(async (datasetId: string, options, command) => {
       const opts = command.optsWithGlobals();
       const client = new DifyClient({ apiKey: opts.apiKey, baseUrl: opts.baseUrl });
@@ -175,10 +225,16 @@ export function registerKnowledgeCommands(program: Command): void {
         const blob = new Blob([buffer], { type: 'application/octet-stream' });
         const formData = new FormData();
         formData.append('file', blob, fileName);
-        formData.append('name', fileName);
-        if (options.indexingTechnique) {
-          formData.append('indexing_technique', options.indexingTechnique);
+        const data: Record<string, any> = {};
+        if (options.indexingTechnique) data.indexing_technique = options.indexingTechnique;
+        if (options.docForm) data.doc_form = options.docForm;
+        if (options.docLanguage) data.doc_language = options.docLanguage;
+        const processRule = buildProcessRule(options);
+        if (processRule) data.process_rule = processRule;
+        if (Object.keys(data).length > 0) {
+          formData.append('data', JSON.stringify(data));
         }
+        formData.append('name', fileName);
         const result = await api.createDocumentByFile(datasetId, formData);
         console.log(formatOutput(result));
       } catch (err: any) {
