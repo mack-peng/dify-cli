@@ -10,16 +10,10 @@ function buildProcessRule(options: Record<string, any>): Record<string, any> | u
   const processRule: Record<string, any> = { mode: options.processRuleMode };
   if (options.processRuleMode === 'custom') {
     const rules: Record<string, any> = {};
-    const preProcessingRules: { id: string; enabled: boolean }[] = [];
-    if (options.removeExtraSpaces !== undefined) {
-      preProcessingRules.push({ id: 'remove_extra_spaces', enabled: options.removeExtraSpaces });
-    }
-    if (options.removeUrlsEmails !== undefined) {
-      preProcessingRules.push({ id: 'remove_urls_emails', enabled: options.removeUrlsEmails });
-    }
-    if (preProcessingRules.length > 0) {
-      rules.pre_processing_rules = preProcessingRules;
-    }
+    rules.pre_processing_rules = [
+      { id: 'remove_extra_spaces', enabled: options.removeExtraSpaces ?? false },
+      { id: 'remove_urls_emails', enabled: options.removeUrlsEmails ?? false },
+    ];
     const segmentation: Record<string, any> = {};
     if (options.separator !== undefined) segmentation.separator = options.separator;
     if (options.maxTokens !== undefined) segmentation.max_tokens = options.maxTokens;
@@ -220,21 +214,20 @@ export function registerKnowledgeCommands(program: Command): void {
       const api = new KnowledgeAPI(client);
       try {
         const filePath = options.file;
-        const fileName = options.name || path.basename(filePath);
+        const origFileName = path.basename(filePath);
+        const fileName = options.name || origFileName;
         const buffer = await fs.promises.readFile(filePath);
         const blob = new Blob([buffer], { type: 'application/octet-stream' });
         const formData = new FormData();
-        formData.append('file', blob, fileName);
+        formData.append('file', blob, origFileName);
         const data: Record<string, any> = {};
+        data.name = fileName;
         if (options.indexingTechnique) data.indexing_technique = options.indexingTechnique;
         if (options.docForm) data.doc_form = options.docForm;
         if (options.docLanguage) data.doc_language = options.docLanguage;
         const processRule = buildProcessRule(options);
         if (processRule) data.process_rule = processRule;
-        if (Object.keys(data).length > 0) {
-          formData.append('data', JSON.stringify(data));
-        }
-        formData.append('name', fileName);
+        formData.append('data', JSON.stringify(data));
         const result = await api.createDocumentByFile(datasetId, formData);
         console.log(formatOutput(result));
       } catch (err: any) {
