@@ -10,6 +10,13 @@ export interface DifyConfig {
   defaultUser?: string;
 }
 
+export function maskApiKey(key: string): string {
+  const prefix = ['app-', 'dataset-'].find(p => key.startsWith(p)) || '';
+  const body = prefix ? key.slice(prefix.length) : key;
+  if (body.length <= 4) return prefix + '****';
+  return prefix + body.slice(0, 4) + '****' + body.slice(-4);
+}
+
 export class ConfigManager {
   private config: DifyConfig;
 

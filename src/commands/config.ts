@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { ConfigManager } from '../utils/config';
+import { ConfigManager, maskApiKey } from '../utils/config';
 import { formatOutput } from '../utils/output';
 
 export function registerConfigCommands(program: Command): void {
@@ -51,9 +51,14 @@ export function registerConfigCommands(program: Command): void {
           console.error(`Config key "${key}" not found`);
           process.exit(1);
         }
-        console.log(formatOutput({ [key]: val }));
+        const masked = key === 'apiKey' && val ? maskApiKey(val) : val;
+        console.log(formatOutput({ [key]: masked }));
       } else {
-        console.log(formatOutput(cm.getAll()));
+        const all = cm.getAll();
+        if (all.apiKey) {
+          all.apiKey = maskApiKey(all.apiKey);
+        }
+        console.log(formatOutput(all));
       }
     });
 }
