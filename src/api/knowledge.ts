@@ -117,6 +117,107 @@ export interface ListSegmentsResponse {
   has_more: boolean;
 }
 
+export interface RetrieveSegmentsParams {
+  query: string;
+  retrieval_model?: {
+    search_method: 'keyword_search' | 'semantic_search' | 'full_text_search' | 'hybrid_search';
+    reranking_enable: boolean;
+    reranking_model?: {
+      reranking_provider_name: string;
+      reranking_model_name: string;
+    };
+    reranking_mode?: 'reranking_model' | 'weighted_score';
+    top_k: number;
+    score_threshold_enabled: boolean;
+    score_threshold?: number;
+    weights?: {
+      weight_type: 'semantic_first' | 'keyword_first' | 'customized';
+      vector_setting?: {
+        vector_weight: number;
+        embedding_provider_name: string;
+        embedding_model_name: string;
+      };
+      keyword_setting?: {
+        keyword_weight: number;
+      };
+    };
+    metadata_filtering_conditions?: {
+      logical_operator?: 'and' | 'or';
+      conditions?: {
+        name: string;
+        comparison_operator: string;
+        value?: string | string[] | number;
+      }[];
+    };
+  };
+  external_retrieval_model?: {
+    top_k: number;
+    score_threshold: number;
+    score_threshold_enabled: boolean;
+  };
+  attachment_ids?: string[];
+}
+
+export interface RetrievedSegment {
+  id: string;
+  position: number;
+  document_id: string;
+  content: string;
+  sign_content: string;
+  answer: string;
+  word_count: number;
+  tokens: number;
+  keywords: string[];
+  index_node_id: string;
+  index_node_hash: string;
+  hit_count: number;
+  enabled: boolean;
+  disabled_at: number | null;
+  disabled_by: string | null;
+  status: string;
+  created_by: string;
+  created_at: number;
+  indexing_at: number | null;
+  completed_at: number | null;
+  error: string | null;
+  stopped_at: number | null;
+  document: {
+    id: string;
+    data_source_type: string;
+    name: string;
+    doc_type: string | null;
+    doc_metadata: Record<string, any> | null;
+  };
+}
+
+export interface RetrieveRecord {
+  segment: RetrievedSegment;
+  child_chunks: {
+    id: string;
+    content: string;
+    position: number;
+    score: number;
+  }[];
+  score: number;
+  tsne_position: any;
+  files: {
+    id: string;
+    name: string;
+    size: number;
+    extension: string;
+    mime_type: string;
+    source_url: string;
+  }[];
+  summary: string | null;
+}
+
+export interface RetrieveSegmentsResponse {
+  query: {
+    content: string;
+  };
+  records: RetrieveRecord[];
+}
+
 export class KnowledgeAPI {
   constructor(private client: DifyClient) {}
 
@@ -194,5 +295,9 @@ export class KnowledgeAPI {
 
   async deleteSegment(datasetId: string, documentId: string, segmentId: string): Promise<{ result: string }> {
     return this.client.request<{ result: string }>(`/datasets/${datasetId}/documents/${documentId}/segments/${segmentId}`, { method: 'DELETE' });
+  }
+
+  async retrieveSegments(datasetId: string, params: RetrieveSegmentsParams): Promise<RetrieveSegmentsResponse> {
+    return this.client.request<RetrieveSegmentsResponse>(`/datasets/${datasetId}/retrieve`, { method: 'POST', body: params });
   }
 }

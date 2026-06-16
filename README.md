@@ -179,6 +179,10 @@ dify-cli knowledge segment list <dataset_id> <document_id>
 dify-cli knowledge segment create <dataset_id> <document_id> --content "text"
 dify-cli knowledge segment update <dataset_id> <document_id> <segment_id> --content "text"
 dify-cli knowledge segment delete <dataset_id> <document_id> <segment_id>
+
+# Retrieve
+dify-cli knowledge retrieve <dataset_id> --query "search text"
+dify-cli knowledge retrieve <dataset_id> --query "test" --retrieval-model '{"search_method":"hybrid_search","reranking_enable":false,"top_k":5,"score_threshold_enabled":false}'
 ```
 
 ### Conversation

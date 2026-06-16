@@ -368,4 +368,28 @@ export function registerKnowledgeCommands(program: Command): void {
         process.exit(1);
       }
     });
+
+  knowledge
+    .command('retrieve <dataset_id>')
+    .description('Retrieve relevant segments by query')
+    .requiredOption('--query <text>', 'Query text (max 250 chars)')
+    .option('--retrieval-model <json>', 'Retrieval model config as JSON')
+    .option('--external-retrieval-model <json>', 'External retrieval model settings as JSON')
+    .option('--attachment-ids <json>', 'Attachment IDs as JSON string array')
+    .action(async (datasetId: string, options, command) => {
+      const opts = command.optsWithGlobals();
+      const client = new DifyClient({ apiKey: opts.apiKey, baseUrl: opts.baseUrl });
+      const api = new KnowledgeAPI(client);
+      try {
+        const params: Record<string, any> = { query: options.query };
+        if (options.retrievalModel) params.retrieval_model = JSON.parse(options.retrievalModel);
+        if (options.externalRetrievalModel) params.external_retrieval_model = JSON.parse(options.externalRetrievalModel);
+        if (options.attachmentIds) params.attachment_ids = JSON.parse(options.attachmentIds);
+        const result = await api.retrieveSegments(datasetId, params as any);
+        console.log(formatOutput(result));
+      } catch (err: any) {
+        console.error(err.message);
+        process.exit(1);
+      }
+    });
 }
