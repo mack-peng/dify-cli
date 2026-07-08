@@ -1,4 +1,5 @@
 import { DifyClient } from './client';
+import { buildQueryString } from '../utils/query';
 
 export interface CreateDatasetParams {
   name: string;
@@ -222,12 +223,11 @@ export class KnowledgeAPI {
   constructor(private client: DifyClient) {}
 
   async listDatasets(params?: { page?: number; limit?: number; keyword?: string }): Promise<ListDatasetsResponse> {
-    const query = new URLSearchParams();
-    if (params?.page) query.set('page', String(params.page));
-    if (params?.limit) query.set('limit', String(params.limit));
-    if (params?.keyword) query.set('keyword', params.keyword);
-    const qs = query.toString();
-    return this.client.request<ListDatasetsResponse>(`/datasets${qs ? '?' + qs : ''}`);
+    return this.client.request<ListDatasetsResponse>(`/datasets${buildQueryString({
+      page: params?.page,
+      limit: params?.limit,
+      keyword: params?.keyword,
+    })}`);
   }
 
   async createDataset(params: CreateDatasetParams): Promise<DatasetResponse> {
@@ -247,12 +247,11 @@ export class KnowledgeAPI {
   }
 
   async listDocuments(datasetId: string, params?: { page?: number; limit?: number; keyword?: string }): Promise<{ data: DocumentResponse[]; page: number; limit: number; total: number; has_more: boolean }> {
-    const query = new URLSearchParams();
-    if (params?.page) query.set('page', String(params.page));
-    if (params?.limit) query.set('limit', String(params.limit));
-    if (params?.keyword) query.set('keyword', params.keyword);
-    const qs = query.toString();
-    return this.client.request(`/datasets/${datasetId}/documents${qs ? '?' + qs : ''}`);
+    return this.client.request(`/datasets/${datasetId}/documents${buildQueryString({
+      page: params?.page,
+      limit: params?.limit,
+      keyword: params?.keyword,
+    })}`);
   }
 
   async createDocumentByText(datasetId: string, params: CreateDocumentByTextParams): Promise<DocumentResponse> {
@@ -276,13 +275,12 @@ export class KnowledgeAPI {
   }
 
   async listSegments(datasetId: string, documentId: string, params?: { page?: number; limit?: number; keyword?: string; status?: string }): Promise<ListSegmentsResponse> {
-    const query = new URLSearchParams();
-    if (params?.page) query.set('page', String(params.page));
-    if (params?.limit) query.set('limit', String(params.limit));
-    if (params?.keyword) query.set('keyword', params.keyword);
-    if (params?.status) query.set('status', params.status);
-    const qs = query.toString();
-    return this.client.request<ListSegmentsResponse>(`/datasets/${datasetId}/documents/${documentId}/segments${qs ? '?' + qs : ''}`);
+    return this.client.request<ListSegmentsResponse>(`/datasets/${datasetId}/documents/${documentId}/segments${buildQueryString({
+      page: params?.page,
+      limit: params?.limit,
+      keyword: params?.keyword,
+      status: params?.status,
+    })}`);
   }
 
   async createSegment(datasetId: string, documentId: string, params: { content: string; keywords?: string[]; user?: string }): Promise<SegmentResponse> {

@@ -1,3 +1,3 @@
-export function formatOutput(data: any, _pretty: boolean = false): string {
+export function formatOutput(data: any): string {
   return JSON.stringify(data, null, 2);
 }

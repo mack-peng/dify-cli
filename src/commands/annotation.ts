@@ -1,7 +1,7 @@
 import { Command } from 'commander';
-import { DifyClient } from '../api/client';
 import { AnnotationAPI } from '../api/annotation';
 import { formatOutput } from '../utils/output';
+import { resolveContext } from '../utils/context';
 
 export function registerAnnotationCommands(program: Command): void {
   const annotation = program.command('annotation').description('Annotation management').alias('ann');
@@ -12,9 +12,8 @@ export function registerAnnotationCommands(program: Command): void {
     .requiredOption('-q, --question <text>', 'Question text')
     .requiredOption('-a, --answer <text>', 'Answer text')
     .action(async (options, command) => {
-      const opts = command.optsWithGlobals();
-      const client = new DifyClient({ apiKey: opts.apiKey, baseUrl: opts.baseUrl });
-      const api = new AnnotationAPI(client);
+      const ctx = resolveContext(command);
+      const api = new AnnotationAPI(ctx.client);
       try {
         const result = await api.create({ question: options.question, answer: options.answer });
         console.log(formatOutput(result));
@@ -30,9 +29,8 @@ export function registerAnnotationCommands(program: Command): void {
     .option('--page <n>', 'Page number')
     .option('--limit <n>', 'Items per page')
     .action(async (options, command) => {
-      const opts = command.optsWithGlobals();
-      const client = new DifyClient({ apiKey: opts.apiKey, baseUrl: opts.baseUrl });
-      const api = new AnnotationAPI(client);
+      const ctx = resolveContext(command);
+      const api = new AnnotationAPI(ctx.client);
       try {
         const result = await api.list({
           page: options.page ? Number(options.page) : undefined,
@@ -51,9 +49,8 @@ export function registerAnnotationCommands(program: Command): void {
     .option('-q, --question <text>', 'Question text')
     .option('-a, --answer <text>', 'Answer text')
     .action(async (annotationId: string, options, command) => {
-      const opts = command.optsWithGlobals();
-      const client = new DifyClient({ apiKey: opts.apiKey, baseUrl: opts.baseUrl });
-      const api = new AnnotationAPI(client);
+      const ctx = resolveContext(command);
+      const api = new AnnotationAPI(ctx.client);
       try {
         const result = await api.update(annotationId, {
           question: options.question,
@@ -70,9 +67,8 @@ export function registerAnnotationCommands(program: Command): void {
     .command('delete <annotation_id>')
     .description('Delete an annotation')
     .action(async (annotationId: string, _options, command) => {
-      const opts = command.optsWithGlobals();
-      const client = new DifyClient({ apiKey: opts.apiKey, baseUrl: opts.baseUrl });
-      const api = new AnnotationAPI(client);
+      const ctx = resolveContext(command);
+      const api = new AnnotationAPI(ctx.client);
       try {
         const result = await api.delete(annotationId);
         console.log(formatOutput(result));
@@ -89,9 +85,8 @@ export function registerAnnotationCommands(program: Command): void {
     .option('--reply-type <type>', 'Reply type')
     .option('--score-threshold <n>', 'Score threshold')
     .action(async (options, command) => {
-      const opts = command.optsWithGlobals();
-      const client = new DifyClient({ apiKey: opts.apiKey, baseUrl: opts.baseUrl });
-      const api = new AnnotationAPI(client);
+      const ctx = resolveContext(command);
+      const api = new AnnotationAPI(ctx.client);
       try {
         if (options.update) {
           const result = await api.updateReplyConfig({

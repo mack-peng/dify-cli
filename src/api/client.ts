@@ -9,18 +9,26 @@ export interface RequestOptions {
 }
 
 export class DifyClient {
-  private apiKey: string;
-  private baseUrl: string;
+  private _apiKey: string;
+  private _baseUrl: string;
 
   constructor(opts?: { apiKey?: string; baseUrl?: string }) {
     const config = new ConfigManager();
-    this.apiKey = opts?.apiKey || process.env.DIFY_API_KEY || config.get('apiKey') || '';
-    this.baseUrl = opts?.baseUrl || process.env.DIFY_BASE_URL || config.get('baseUrl') || 'https://api.dify.ai/v1';
+    this._apiKey = opts?.apiKey || process.env.DIFY_API_KEY || config.get('apiKey') || '';
+    this._baseUrl = opts?.baseUrl || process.env.DIFY_BASE_URL || config.get('baseUrl') || 'https://api.dify.ai/v1';
+  }
+
+  get apiKey(): string {
+    return this._apiKey;
+  }
+
+  get baseUrl(): string {
+    return this._baseUrl;
   }
 
   private getHeaders(contentType?: string): Record<string, string> {
     const headers: Record<string, string> = {
-      'Authorization': `Bearer ${this.apiKey}`,
+      'Authorization': `Bearer ${this._apiKey}`,
     };
     if (contentType) {
       headers['Content-Type'] = contentType;
@@ -28,8 +36,20 @@ export class DifyClient {
     return headers;
   }
 
+  private async handleError(response: Response): Promise<never> {
+    const error = await response.text();
+    let detail = '';
+    try {
+      const parsed = JSON.parse(error);
+      detail = parsed.message || parsed.error || JSON.stringify(parsed);
+    } catch {
+      detail = error;
+    }
+    throw new Error(`API ${response.status}: ${detail}`);
+  }
+
   async request<T>(path: string, options: RequestOptions = {}): Promise<T> {
-    const url = `${this.baseUrl}${path}`;
+    const url = `${this._baseUrl}${path}`;
     const isFormData = options.body instanceof FormData;
     const headers = {
       ...this.getHeaders(isFormData ? undefined : 'application/json'),
@@ -47,22 +67,14 @@ export class DifyClient {
     });
 
     if (!response.ok) {
-      const error = await response.text();
-      let detail = '';
-      try {
-        const parsed = JSON.parse(error);
-        detail = parsed.message || parsed.error || JSON.stringify(parsed);
-      } catch {
-        detail = error;
-      }
-      throw new Error(`API ${response.status}: ${detail}`);
+      await this.handleError(response);
     }
 
     return response.json() as Promise<T>;
   }
 
   async requestStream(path: string, options: RequestOptions = {}): Promise<Response> {
-    const url = `${this.baseUrl}${path}`;
+    const url = `${this._baseUrl}${path}`;
     const isFormData = options.body instanceof FormData;
     const headers = {
       ...this.getHeaders(isFormData ? undefined : 'application/json'),
@@ -80,24 +92,16 @@ export class DifyClient {
     });
 
     if (!response.ok) {
-      const error = await response.text();
-      let detail = '';
-      try {
-        const parsed = JSON.parse(error);
-        detail = parsed.message || parsed.error || JSON.stringify(parsed);
-      } catch {
-        detail = error;
-      }
-      throw new Error(`API ${response.status}: ${detail}`);
+      await this.handleError(response);
     }
 
     return response;
   }
 
   async uploadFile<T = any>(path: string, formData: FormData): Promise<T> {
-    const url = `${this.baseUrl}${path}`;
+    const url = `${this._baseUrl}${path}`;
     const headers: Record<string, string> = {
-      'Authorization': `Bearer ${this.apiKey}`,
+      'Authorization': `Bearer ${this._apiKey}`,
     };
 
     const response = await fetch(url, {
@@ -107,15 +111,7 @@ export class DifyClient {
     });
 
     if (!response.ok) {
-      const error = await response.text();
-      let detail = '';
-      try {
-        const parsed = JSON.parse(error);
-        detail = parsed.message || parsed.error || JSON.stringify(parsed);
-      } catch {
-        detail = error;
-      }
-      throw new Error(`API ${response.status}: ${detail}`);
+      await this.handleError(response);
     }
 
     return response.json() as Promise<T>;

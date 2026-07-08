@@ -1,7 +1,7 @@
 import { Command } from 'commander';
-import { DifyClient } from '../api/client';
 import { FeedbackAPI } from '../api/feedback';
 import { formatOutput } from '../utils/output';
+import { resolveContext } from '../utils/context';
 
 export function registerFeedbackCommands(program: Command): void {
   const feedback = program.command('feedback').description('Feedback operations');
@@ -13,9 +13,8 @@ export function registerFeedbackCommands(program: Command): void {
     .option('--limit <n>', 'Items per page')
     .option('--app-type <type>', 'App type: chat, advanced-chat, workflow, completion')
     .action(async (options, command) => {
-      const opts = command.optsWithGlobals();
-      const client = new DifyClient({ apiKey: opts.apiKey, baseUrl: opts.baseUrl });
-      const api = new FeedbackAPI(client);
+      const ctx = resolveContext(command);
+      const api = new FeedbackAPI(ctx.client);
       try {
         const result = await api.list({
           page: options.page ? Number(options.page) : undefined,

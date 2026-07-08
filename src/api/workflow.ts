@@ -1,4 +1,5 @@
 import { DifyClient } from './client';
+import { buildQueryString } from '../utils/query';
 import { FileInput } from './chat';
 
 export interface WorkflowRunRequest {
@@ -74,13 +75,12 @@ export class WorkflowAPI {
   }
 
   async getLogs(params?: WorkflowLogsParams): Promise<WorkflowLogsResponse> {
-    const query = new URLSearchParams();
-    if (params?.keyword) query.set('keyword', params.keyword);
-    if (params?.status) query.set('status', params.status);
-    if (params?.page) query.set('page', String(params.page));
-    if (params?.limit) query.set('limit', String(params.limit));
-    const qs = query.toString();
-    return this.client.request<WorkflowLogsResponse>(`/workflows/logs${qs ? '?' + qs : ''}`);
+    return this.client.request<WorkflowLogsResponse>(`/workflows/logs${buildQueryString({
+      keyword: params?.keyword,
+      status: params?.status,
+      page: params?.page,
+      limit: params?.limit,
+    })}`);
   }
 
   async getRunDetail(runId: string): Promise<WorkflowRunDetailResponse> {

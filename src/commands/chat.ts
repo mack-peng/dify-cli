@@ -1,8 +1,8 @@
 import { Command } from 'commander';
-import { DifyClient } from '../api/client';
 import { ChatAPI } from '../api/chat';
 import { formatOutput } from '../utils/output';
 import { parseSSEStream } from '../utils/streaming';
+import { resolveContext, safeJsonParse } from '../utils/context';
 
 export function registerChatCommands(program: Command): void {
   const chat = program.command('chat').description('Chat App operations');
@@ -17,39 +17,37 @@ export function registerChatCommands(program: Command): void {
     .option('--file-type <type>', 'File type: image, document, audio, video', 'document')
     .option('--no-auto-name', 'Disable auto conversation naming')
     .action(async (message: string | undefined, options, command) => {
-      const opts = command.optsWithGlobals();
-      const user = opts.user || 'cli-user';
-      const client = new DifyClient({ apiKey: opts.apiKey, baseUrl: opts.baseUrl });
-      const api = new ChatAPI(client);
+      const ctx = resolveContext(command);
+      const api = new ChatAPI(ctx.client);
 
       if (!message && process.stdin.isTTY) {
         console.error('Error: message argument is required when not piping');
         process.exit(1);
       }
 
-      let query = message || '';
-      if (!message && !process.stdin.isTTY) {
-        const chunks: Buffer[] = [];
-        for await (const chunk of process.stdin) {
-          chunks.push(chunk as Buffer);
-        }
-        query = Buffer.concat(chunks).toString('utf-8').trim();
-      }
-
-      const inputs = options.inputs ? JSON.parse(options.inputs) : {};
-      const files = options.file ? [{ type: options.fileType, transfer_method: 'local_file' as const, url: options.file }] : undefined;
-
-      const params = {
-        inputs,
-        query,
-        response_mode: options.mode as 'blocking' | 'streaming',
-        user,
-        conversation_id: options.conversation,
-        files: files as any,
-        auto_generate_name: options.autoName,
-      };
-
       try {
+        let query = message || '';
+        if (!message && !process.stdin.isTTY) {
+          const chunks: Buffer[] = [];
+          for await (const chunk of process.stdin) {
+            chunks.push(chunk as Buffer);
+          }
+          query = Buffer.concat(chunks).toString('utf-8').trim();
+        }
+
+        const inputs = options.inputs ? safeJsonParse(options.inputs, '--inputs') : {};
+        const files = options.file ? [{ type: options.fileType, transfer_method: 'local_file' as const, url: options.file }] : undefined;
+
+        const params = {
+          inputs,
+          query,
+          response_mode: options.mode as 'blocking' | 'streaming',
+          user: ctx.user,
+          conversation_id: options.conversation,
+          files: files as any,
+          auto_generate_name: options.autoName,
+        };
+
         if (options.mode === 'streaming') {
           const response = await api.sendMessageStream(params);
           for await (const event of parseSSEStream(response)) {
@@ -69,12 +67,10 @@ export function registerChatCommands(program: Command): void {
     .command('stop <task_id>')
     .description('Stop message generation')
     .action(async (taskId: string, _options, command) => {
-      const opts = command.optsWithGlobals();
-      const user = opts.user || 'cli-user';
-      const client = new DifyClient({ apiKey: opts.apiKey, baseUrl: opts.baseUrl });
-      const api = new ChatAPI(client);
+      const ctx = resolveContext(command);
+      const api = new ChatAPI(ctx.client);
       try {
-        const result = await api.stopMessage(taskId, user);
+        const result = await api.stopMessage(taskId, ctx.user);
         console.log(formatOutput(result));
       } catch (err: any) {
         console.error(err.message);
@@ -88,12 +84,10 @@ export function registerChatCommands(program: Command): void {
     .requiredOption('-r, --rating <rating>', 'Rating: like or dislike')
     .option('--content <text>', 'Feedback content')
     .action(async (messageId: string, options, command) => {
-      const opts = command.optsWithGlobals();
-      const user = opts.user || 'cli-user';
-      const client = new DifyClient({ apiKey: opts.apiKey, baseUrl: opts.baseUrl });
-      const api = new ChatAPI(client);
+      const ctx = resolveContext(command);
+      const api = new ChatAPI(ctx.client);
       try {
-        const result = await api.submitFeedback(messageId, { rating: options.rating, user, content: options.content });
+        const result = await api.submitFeedback(messageId, { rating: options.rating, user: ctx.user, content: options.content });
         console.log(formatOutput(result));
       } catch (err: any) {
         console.error(err.message);
@@ -105,12 +99,10 @@ export function registerChatCommands(program: Command): void {
     .command('suggested <message_id>')
     .description('Get suggested questions for a message')
     .action(async (messageId: string, _options, command) => {
-      const opts = command.optsWithGlobals();
-      const user = opts.user || 'cli-user';
-      const client = new DifyClient({ apiKey: opts.apiKey, baseUrl: opts.baseUrl });
-      const api = new ChatAPI(client);
+      const ctx = resolveContext(command);
+      const api = new ChatAPI(ctx.client);
       try {
-        const result = await api.getSuggestedQuestions(messageId, user);
+        const result = await api.getSuggestedQuestions(messageId, ctx.user);
         console.log(formatOutput(result));
       } catch (err: any) {
         console.error(err.message);

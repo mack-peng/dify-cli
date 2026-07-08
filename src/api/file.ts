@@ -25,9 +25,9 @@ export class FileAPI {
   }
 
   async preview(fileId: string): Promise<Response> {
-    const url = `${this.client['baseUrl']}/files/${fileId}`;
+    const url = `${this.client.baseUrl}/files/${fileId}`;
     const headers: Record<string, string> = {
-      'Authorization': `Bearer ${this.client['apiKey']}`,
+      'Authorization': `Bearer ${this.client.apiKey}`,
     };
     const response = await fetch(url, { headers });
     if (!response.ok) {

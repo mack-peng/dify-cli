@@ -1,4 +1,5 @@
 import { DifyClient } from './client';
+import { buildQueryString } from '../utils/query';
 
 export interface AnnotationResponse {
   id: string;
@@ -31,11 +32,10 @@ export class AnnotationAPI {
   }
 
   async list(params?: { page?: number; limit?: number }): Promise<ListAnnotationsResponse> {
-    const query = new URLSearchParams();
-    if (params?.page) query.set('page', String(params.page));
-    if (params?.limit) query.set('limit', String(params.limit));
-    const qs = query.toString();
-    return this.client.request<ListAnnotationsResponse>(`/annotations${qs ? '?' + qs : ''}`);
+    return this.client.request<ListAnnotationsResponse>(`/annotations${buildQueryString({
+      page: params?.page,
+      limit: params?.limit,
+    })}`);
   }
 
   async update(annotationId: string, params: { question?: string; answer?: string }): Promise<AnnotationResponse> {

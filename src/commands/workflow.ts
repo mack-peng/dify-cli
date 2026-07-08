@@ -1,8 +1,8 @@
 import { Command } from 'commander';
-import { DifyClient } from '../api/client';
 import { WorkflowAPI } from '../api/workflow';
 import { formatOutput } from '../utils/output';
 import { parseSSEStream } from '../utils/streaming';
+import { resolveContext, safeJsonParse } from '../utils/context';
 
 export function registerWorkflowCommands(program: Command): void {
   const workflow = program.command('workflow').description('Workflow App operations');
@@ -15,17 +15,15 @@ export function registerWorkflowCommands(program: Command): void {
     .option('--file <path>', 'Upload a file')
     .option('--file-type <type>', 'File type: image, document, audio, video', 'document')
     .action(async (options, command) => {
-      const opts = command.optsWithGlobals();
-      const user = opts.user || 'cli-user';
-      const client = new DifyClient({ apiKey: opts.apiKey, baseUrl: opts.baseUrl });
-      const api = new WorkflowAPI(client);
-
-      const inputs = options.inputs ? JSON.parse(options.inputs) : {};
-      const files = options.file ? [{ type: options.fileType, transfer_method: 'local_file' as const, url: options.file }] : undefined;
-
-      const params = { inputs, response_mode: options.mode as 'blocking' | 'streaming', user, files: files as any };
+      const ctx = resolveContext(command);
+      const api = new WorkflowAPI(ctx.client);
 
       try {
+        const inputs = options.inputs ? safeJsonParse(options.inputs, '--inputs') : {};
+        const files = options.file ? [{ type: options.fileType, transfer_method: 'local_file' as const, url: options.file }] : undefined;
+
+        const params = { inputs, response_mode: options.mode as 'blocking' | 'streaming', user: ctx.user, files: files as any };
+
         if (options.mode === 'streaming') {
           const response = await api.runStream(params);
           for await (const event of parseSSEStream(response)) {
@@ -45,12 +43,10 @@ export function registerWorkflowCommands(program: Command): void {
     .command('stop <task_id>')
     .description('Stop a running workflow')
     .action(async (taskId: string, _options, command) => {
-      const opts = command.optsWithGlobals();
-      const user = opts.user || 'cli-user';
-      const client = new DifyClient({ apiKey: opts.apiKey, baseUrl: opts.baseUrl });
-      const api = new WorkflowAPI(client);
+      const ctx = resolveContext(command);
+      const api = new WorkflowAPI(ctx.client);
       try {
-        const result = await api.stop(taskId, user);
+        const result = await api.stop(taskId, ctx.user);
         console.log(formatOutput(result));
       } catch (err: any) {
         console.error(err.message);
@@ -66,9 +62,8 @@ export function registerWorkflowCommands(program: Command): void {
     .option('--page <n>', 'Page number')
     .option('--limit <n>', 'Items per page')
     .action(async (options, command) => {
-      const opts = command.optsWithGlobals();
-      const client = new DifyClient({ apiKey: opts.apiKey, baseUrl: opts.baseUrl });
-      const api = new WorkflowAPI(client);
+      const ctx = resolveContext(command);
+      const api = new WorkflowAPI(ctx.client);
       try {
         const result = await api.getLogs({
           keyword: options.keyword,
@@ -87,9 +82,8 @@ export function registerWorkflowCommands(program: Command): void {
     .command('detail <run_id>')
     .description('Get workflow run detail')
     .action(async (runId: string, _options, command) => {
-      const opts = command.optsWithGlobals();
-      const client = new DifyClient({ apiKey: opts.apiKey, baseUrl: opts.baseUrl });
-      const api = new WorkflowAPI(client);
+      const ctx = resolveContext(command);
+      const api = new WorkflowAPI(ctx.client);
       try {
         const result = await api.getRunDetail(runId);
         console.log(formatOutput(result));

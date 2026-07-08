@@ -1,16 +1,15 @@
 import { Command } from 'commander';
-import { DifyClient } from '../api/client';
 import { ApplicationAPI } from '../api/application';
 import { formatOutput } from '../utils/output';
+import { resolveContext } from '../utils/context';
 
 export function registerInfoCommands(program: Command): void {
   program
     .command('info')
     .description('Get application basic information')
     .action(async (_options, command) => {
-      const opts = command.optsWithGlobals();
-      const client = new DifyClient({ apiKey: opts.apiKey, baseUrl: opts.baseUrl });
-      const api = new ApplicationAPI(client);
+      const ctx = resolveContext(command);
+      const api = new ApplicationAPI(ctx.client);
       try {
         const result = await api.getInfo();
         console.log(formatOutput(result));
@@ -24,9 +23,8 @@ export function registerInfoCommands(program: Command): void {
     .command('parameters')
     .description('Get application parameters')
     .action(async (_options, command) => {
-      const opts = command.optsWithGlobals();
-      const client = new DifyClient({ apiKey: opts.apiKey, baseUrl: opts.baseUrl });
-      const api = new ApplicationAPI(client);
+      const ctx = resolveContext(command);
+      const api = new ApplicationAPI(ctx.client);
       try {
         const result = await api.getParameters();
         console.log(formatOutput(result));
@@ -40,9 +38,8 @@ export function registerInfoCommands(program: Command): void {
     .command('meta')
     .description('Get application meta information')
     .action(async (_options, command) => {
-      const opts = command.optsWithGlobals();
-      const client = new DifyClient({ apiKey: opts.apiKey, baseUrl: opts.baseUrl });
-      const api = new ApplicationAPI(client);
+      const ctx = resolveContext(command);
+      const api = new ApplicationAPI(ctx.client);
       try {
         const result = await api.getMeta();
         console.log(formatOutput(result));
@@ -56,9 +53,8 @@ export function registerInfoCommands(program: Command): void {
     .command('site')
     .description('Get WebApp settings')
     .action(async (_options, command) => {
-      const opts = command.optsWithGlobals();
-      const client = new DifyClient({ apiKey: opts.apiKey, baseUrl: opts.baseUrl });
-      const api = new ApplicationAPI(client);
+      const ctx = resolveContext(command);
+      const api = new ApplicationAPI(ctx.client);
       try {
         const result = await api.getSite();
         console.log(formatOutput(result));

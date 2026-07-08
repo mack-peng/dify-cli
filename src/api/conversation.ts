@@ -1,4 +1,5 @@
 import { DifyClient } from './client';
+import { buildQueryString } from '../utils/query';
 
 export interface ConversationResponse {
   id: string;
@@ -49,22 +50,20 @@ export class ConversationAPI {
   constructor(private client: DifyClient) {}
 
   async list(params?: { user?: string; page?: number; limit?: number; sort_by?: string }): Promise<ListConversationsResponse> {
-    const query = new URLSearchParams();
-    if (params?.user) query.set('user', params.user);
-    if (params?.page) query.set('page', String(params.page));
-    if (params?.limit) query.set('limit', String(params.limit));
-    if (params?.sort_by) query.set('sort_by', params.sort_by);
-    const qs = query.toString();
-    return this.client.request<ListConversationsResponse>(`/conversations${qs ? '?' + qs : ''}`);
+    return this.client.request<ListConversationsResponse>(`/conversations${buildQueryString({
+      user: params?.user,
+      page: params?.page,
+      limit: params?.limit,
+      sort_by: params?.sort_by,
+    })}`);
   }
 
   async getMessages(conversationId: string, params?: { user?: string; page?: number; limit?: number }): Promise<ListMessagesResponse> {
-    const query = new URLSearchParams();
-    if (params?.user) query.set('user', params.user);
-    if (params?.page) query.set('page', String(params.page));
-    if (params?.limit) query.set('limit', String(params.limit));
-    const qs = query.toString();
-    return this.client.request<ListMessagesResponse>(`/conversations/${conversationId}/messages${qs ? '?' + qs : ''}`);
+    return this.client.request<ListMessagesResponse>(`/conversations/${conversationId}/messages${buildQueryString({
+      user: params?.user,
+      page: params?.page,
+      limit: params?.limit,
+    })}`);
   }
 
   async rename(conversationId: string, name: string, user?: string): Promise<ConversationResponse> {

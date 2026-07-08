@@ -1,9 +1,9 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { Command } from 'commander';
-import { DifyClient } from '../api/client';
 import { KnowledgeAPI } from '../api/knowledge';
 import { formatOutput } from '../utils/output';
+import { resolveContext, safeJsonParse } from '../utils/context';
 
 function buildProcessRule(options: Record<string, any>): Record<string, any> | undefined {
   if (!options.processRuleMode) return undefined;
@@ -38,9 +38,8 @@ export function registerKnowledgeCommands(program: Command): void {
     .option('--limit <n>', 'Items per page')
     .option('--keyword <text>', 'Search keyword')
     .action(async (options, command) => {
-      const opts = command.optsWithGlobals();
-      const client = new DifyClient({ apiKey: opts.apiKey, baseUrl: opts.baseUrl });
-      const api = new KnowledgeAPI(client);
+      const ctx = resolveContext(command);
+      const api = new KnowledgeAPI(ctx.client);
       try {
         const result = await api.listDatasets({
           page: options.page ? Number(options.page) : undefined,
@@ -61,9 +60,8 @@ export function registerKnowledgeCommands(program: Command): void {
     .option('--indexing-technique <technique>', 'Indexing technique: high_quality or economy')
     .option('--permission <perm>', 'Permission: only_me or all_team_members')
     .action(async (name: string, options, command) => {
-      const opts = command.optsWithGlobals();
-      const client = new DifyClient({ apiKey: opts.apiKey, baseUrl: opts.baseUrl });
-      const api = new KnowledgeAPI(client);
+      const ctx = resolveContext(command);
+      const api = new KnowledgeAPI(ctx.client);
       try {
         const result = await api.createDataset({
           name,
@@ -82,9 +80,8 @@ export function registerKnowledgeCommands(program: Command): void {
     .command('get <dataset_id>')
     .description('Get knowledge base details')
     .action(async (datasetId: string, _options, command) => {
-      const opts = command.optsWithGlobals();
-      const client = new DifyClient({ apiKey: opts.apiKey, baseUrl: opts.baseUrl });
-      const api = new KnowledgeAPI(client);
+      const ctx = resolveContext(command);
+      const api = new KnowledgeAPI(ctx.client);
       try {
         const result = await api.getDataset(datasetId);
         console.log(formatOutput(result));
@@ -100,9 +97,8 @@ export function registerKnowledgeCommands(program: Command): void {
     .option('--name <text>', 'New name')
     .option('--description <text>', 'New description')
     .action(async (datasetId: string, options, command) => {
-      const opts = command.optsWithGlobals();
-      const client = new DifyClient({ apiKey: opts.apiKey, baseUrl: opts.baseUrl });
-      const api = new KnowledgeAPI(client);
+      const ctx = resolveContext(command);
+      const api = new KnowledgeAPI(ctx.client);
       try {
         const result = await api.updateDataset(datasetId, {
           name: options.name,
@@ -119,9 +115,8 @@ export function registerKnowledgeCommands(program: Command): void {
     .command('delete <dataset_id>')
     .description('Delete a knowledge base')
     .action(async (datasetId: string, _options, command) => {
-      const opts = command.optsWithGlobals();
-      const client = new DifyClient({ apiKey: opts.apiKey, baseUrl: opts.baseUrl });
-      const api = new KnowledgeAPI(client);
+      const ctx = resolveContext(command);
+      const api = new KnowledgeAPI(ctx.client);
       try {
         const result = await api.deleteDataset(datasetId);
         console.log(formatOutput(result));
@@ -140,9 +135,8 @@ export function registerKnowledgeCommands(program: Command): void {
     .option('--limit <n>', 'Items per page')
     .option('--keyword <text>', 'Search keyword')
     .action(async (datasetId: string, options, command) => {
-      const opts = command.optsWithGlobals();
-      const client = new DifyClient({ apiKey: opts.apiKey, baseUrl: opts.baseUrl });
-      const api = new KnowledgeAPI(client);
+      const ctx = resolveContext(command);
+      const api = new KnowledgeAPI(ctx.client);
       try {
         const result = await api.listDocuments(datasetId, {
           page: options.page ? Number(options.page) : undefined,
@@ -172,9 +166,8 @@ export function registerKnowledgeCommands(program: Command): void {
     .option('--remove-extra-spaces', 'Remove extra spaces (pre-processing)')
     .option('--remove-urls-emails', 'Remove URLs and email addresses (pre-processing)')
     .action(async (datasetId: string, options, command) => {
-      const opts = command.optsWithGlobals();
-      const client = new DifyClient({ apiKey: opts.apiKey, baseUrl: opts.baseUrl });
-      const api = new KnowledgeAPI(client);
+      const ctx = resolveContext(command);
+      const api = new KnowledgeAPI(ctx.client);
       try {
         const params: Record<string, any> = {
           name: options.name,
@@ -209,9 +202,8 @@ export function registerKnowledgeCommands(program: Command): void {
     .option('--remove-extra-spaces', 'Remove extra spaces (pre-processing)')
     .option('--remove-urls-emails', 'Remove URLs and email addresses (pre-processing)')
     .action(async (datasetId: string, options, command) => {
-      const opts = command.optsWithGlobals();
-      const client = new DifyClient({ apiKey: opts.apiKey, baseUrl: opts.baseUrl });
-      const api = new KnowledgeAPI(client);
+      const ctx = resolveContext(command);
+      const api = new KnowledgeAPI(ctx.client);
       try {
         const filePath = options.file;
         const origFileName = path.basename(filePath);
@@ -240,9 +232,8 @@ export function registerKnowledgeCommands(program: Command): void {
     .command('get <dataset_id> <document_id>')
     .description('Get document details')
     .action(async (datasetId: string, documentId: string, _options, command) => {
-      const opts = command.optsWithGlobals();
-      const client = new DifyClient({ apiKey: opts.apiKey, baseUrl: opts.baseUrl });
-      const api = new KnowledgeAPI(client);
+      const ctx = resolveContext(command);
+      const api = new KnowledgeAPI(ctx.client);
       try {
         const result = await api.getDocument(datasetId, documentId);
         console.log(formatOutput(result));
@@ -256,9 +247,8 @@ export function registerKnowledgeCommands(program: Command): void {
     .command('delete <dataset_id> <document_id>')
     .description('Delete a document')
     .action(async (datasetId: string, documentId: string, _options, command) => {
-      const opts = command.optsWithGlobals();
-      const client = new DifyClient({ apiKey: opts.apiKey, baseUrl: opts.baseUrl });
-      const api = new KnowledgeAPI(client);
+      const ctx = resolveContext(command);
+      const api = new KnowledgeAPI(ctx.client);
       try {
         const result = await api.deleteDocument(datasetId, documentId);
         console.log(formatOutput(result));
@@ -272,9 +262,8 @@ export function registerKnowledgeCommands(program: Command): void {
     .command('status <dataset_id> <batch>')
     .description('Get document indexing status')
     .action(async (datasetId: string, batch: string, _options, command) => {
-      const opts = command.optsWithGlobals();
-      const client = new DifyClient({ apiKey: opts.apiKey, baseUrl: opts.baseUrl });
-      const api = new KnowledgeAPI(client);
+      const ctx = resolveContext(command);
+      const api = new KnowledgeAPI(ctx.client);
       try {
         const result = await api.getIndexingStatus(datasetId, batch);
         console.log(formatOutput(result));
@@ -294,9 +283,8 @@ export function registerKnowledgeCommands(program: Command): void {
     .option('--keyword <text>', 'Search keyword')
     .option('--status <status>', 'Filter by status')
     .action(async (datasetId: string, documentId: string, options, command) => {
-      const opts = command.optsWithGlobals();
-      const client = new DifyClient({ apiKey: opts.apiKey, baseUrl: opts.baseUrl });
-      const api = new KnowledgeAPI(client);
+      const ctx = resolveContext(command);
+      const api = new KnowledgeAPI(ctx.client);
       try {
         const result = await api.listSegments(datasetId, documentId, {
           page: options.page ? Number(options.page) : undefined,
@@ -317,13 +305,12 @@ export function registerKnowledgeCommands(program: Command): void {
     .requiredOption('--content <text>', 'Segment content')
     .option('--keywords <json>', 'Keywords as JSON array')
     .action(async (datasetId: string, documentId: string, options, command) => {
-      const opts = command.optsWithGlobals();
-      const client = new DifyClient({ apiKey: opts.apiKey, baseUrl: opts.baseUrl });
-      const api = new KnowledgeAPI(client);
+      const ctx = resolveContext(command);
+      const api = new KnowledgeAPI(ctx.client);
       try {
         const result = await api.createSegment(datasetId, documentId, {
           content: options.content,
-          keywords: options.keywords ? JSON.parse(options.keywords) : undefined,
+          keywords: options.keywords ? safeJsonParse(options.keywords, '--keywords') : undefined,
         });
         console.log(formatOutput(result));
       } catch (err: any) {
@@ -338,13 +325,12 @@ export function registerKnowledgeCommands(program: Command): void {
     .requiredOption('--content <text>', 'Segment content')
     .option('--keywords <json>', 'Keywords as JSON array')
     .action(async (datasetId: string, documentId: string, segmentId: string, options, command) => {
-      const opts = command.optsWithGlobals();
-      const client = new DifyClient({ apiKey: opts.apiKey, baseUrl: opts.baseUrl });
-      const api = new KnowledgeAPI(client);
+      const ctx = resolveContext(command);
+      const api = new KnowledgeAPI(ctx.client);
       try {
         const result = await api.updateSegment(datasetId, documentId, segmentId, {
           content: options.content,
-          keywords: options.keywords ? JSON.parse(options.keywords) : undefined,
+          keywords: options.keywords ? safeJsonParse(options.keywords, '--keywords') : undefined,
         });
         console.log(formatOutput(result));
       } catch (err: any) {
@@ -357,9 +343,8 @@ export function registerKnowledgeCommands(program: Command): void {
     .command('delete <dataset_id> <document_id> <segment_id>')
     .description('Delete a segment')
     .action(async (datasetId: string, documentId: string, segmentId: string, _options, command) => {
-      const opts = command.optsWithGlobals();
-      const client = new DifyClient({ apiKey: opts.apiKey, baseUrl: opts.baseUrl });
-      const api = new KnowledgeAPI(client);
+      const ctx = resolveContext(command);
+      const api = new KnowledgeAPI(ctx.client);
       try {
         const result = await api.deleteSegment(datasetId, documentId, segmentId);
         console.log(formatOutput(result));
@@ -377,14 +362,13 @@ export function registerKnowledgeCommands(program: Command): void {
     .option('--external-retrieval-model <json>', 'External retrieval model settings as JSON')
     .option('--attachment-ids <json>', 'Attachment IDs as JSON string array')
     .action(async (datasetId: string, options, command) => {
-      const opts = command.optsWithGlobals();
-      const client = new DifyClient({ apiKey: opts.apiKey, baseUrl: opts.baseUrl });
-      const api = new KnowledgeAPI(client);
+      const ctx = resolveContext(command);
+      const api = new KnowledgeAPI(ctx.client);
       try {
         const params: Record<string, any> = { query: options.query };
-        if (options.retrievalModel) params.retrieval_model = JSON.parse(options.retrievalModel);
-        if (options.externalRetrievalModel) params.external_retrieval_model = JSON.parse(options.externalRetrievalModel);
-        if (options.attachmentIds) params.attachment_ids = JSON.parse(options.attachmentIds);
+        if (options.retrievalModel) params.retrieval_model = safeJsonParse(options.retrievalModel, '--retrieval-model');
+        if (options.externalRetrievalModel) params.external_retrieval_model = safeJsonParse(options.externalRetrievalModel, '--external-retrieval-model');
+        if (options.attachmentIds) params.attachment_ids = safeJsonParse(options.attachmentIds, '--attachment-ids');
         const result = await api.retrieveSegments(datasetId, params as any);
         console.log(formatOutput(result));
       } catch (err: any) {
