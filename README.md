@@ -113,6 +113,26 @@ DIFY_PROFILE       Active profile name
 
 ---
 
+## Agent Skill
+
+让 AI agent 学会使用 dify-cli：
+
+```bash
+# 安装到所有 agent 技能目录
+dify-cli skill-install
+
+# 安装到指定 agent
+dify-cli skill-install --target opencode
+dify-cli skill-install --target claude
+
+# 卸载
+dify-cli skill-uninstall
+```
+
+支持 target: `auto` (默认), `all`, `opencode`, `claude`, `codex`, `cursor`, `hermes`, `gemini`。
+
+---
+
 ## Commands
 
 ### App Info

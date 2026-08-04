@@ -42,6 +42,7 @@ src/
 ├── api/client.ts      # DifyClient — config resolution, request(), requestStream(), uploadFile()
 ├── api/*.ts           # Domain-specific API classes (ChatAPI, KnowledgeAPI, etc.)
 ├── commands/*.ts      # register*Commands(program) functions
+├── installer/         # skill-template.ts — SKILL.md + pitfalls.md templates
 └── utils/             # config, output (JSON.stringify), streaming (SSE parser)
 ```
 
@@ -55,6 +56,7 @@ src/
 - **`chat send`** supports stdin piping (reads from stdin if no message arg)
 - **`knowledge`** has alias `kb`
 - **Error format**: `API <status_code>: <detail>` — all commands catch and `process.exit(1)`
+- **skill-install / skill-uninstall**: Installs SKILL.md + pitfalls.md into agent skill directories (`~/.agents/skills/dify-cli/`). Use `--target` to select agent (auto/all/opencode/claude/codex/cursor/hermes/gemini).
 
 ## Adding a Command
 

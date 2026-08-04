@@ -51,6 +51,26 @@ sudo npm install -g @orangemust/dify-cli
 
 ---
 
+## Step 1.5: Install Agent Skill
+
+This writes a SKILL.md to your agent skill directories so AI agents know how to use dify-cli:
+
+```bash
+dify-cli skill-install
+```
+
+This installs to `~/.agents/skills/dify-cli/` (OpenCode/Cursor) and `~/.claude/skills/dify-cli/` (Claude).
+
+Target a specific agent:
+
+```bash
+dify-cli skill-install --target opencode
+dify-cli skill-install --target claude
+dify-cli skill-install --target all
+```
+
+---
+
 ## Step 2: Check Existing Config
 
 Before creating a new key, check what's already configured:
@@ -217,7 +237,7 @@ dify-cli knowledge list | jq '.data[].name'
 For agents that trust copy-paste:
 
 ```bash
-npm install -g @orangemust/dify-cli && dify-cli config new default && dify-cli config init --api-key app-xxxx -p default && dify-cli info
+npm install -g @orangemust/dify-cli && dify-cli skill-install && dify-cli config new default && dify-cli config init --api-key app-xxxx -p default && dify-cli info
 ```
 
 Replace `app-xxxx` with the actual key. Humans can paste this and you handle the rest.
