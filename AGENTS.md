@@ -9,7 +9,7 @@ Single dependency: `commander`. Dev: `typescript`, `@types/node`.
 
 ## API Key Types (critical)
 
-Dify has **two non-interchangeable** key types. Config holds one at a time:
+Dify has **two non-interchangeable** key types:
 
 | Prefix | Used by |
 |--------|---------|
@@ -17,6 +17,20 @@ Dify has **two non-interchangeable** key types. Config holds one at a time:
 | `dataset-*` | `knowledge` (datasets, documents, segments) |
 
 Override per-command: `dify-cli <subcommand> --api-key <key>`
+
+## Multi-Profile Config
+
+Config file `~/.dify/config.json` uses a profile-based schema:
+
+```json
+{ "active": "default", "profiles": { "default": { "apiKey": "...", "baseUrl": "..." }, "prod": { ... } } }
+```
+
+Profile selection priority: `--profile <name>` flag → `DIFY_PROFILE` env → `active` field.
+
+Config value priority: CLI flags (`--api-key`, `--base-url`, `--user`) → env vars (`DIFY_API_KEY`, `DIFY_BASE_URL`, `DIFY_DEFAULT_USER`) → active profile's stored value.
+
+Auto-migration: old flat config `{ apiKey, baseUrl, defaultUser }` is migrated to `{ active: "default", profiles: { default: { ... } } }` on first read.
 
 ## Architecture
 

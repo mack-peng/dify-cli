@@ -42,22 +42,25 @@ npm install -g @orangemust/dify-cli
 
 ### 1. Configure API Key
 
-Dify 有两种 API Key，**互不通用**。配置哪个 key，后续命令就操作哪个资源。
+Dify 有两种 API Key，**互不通用**。推荐用多 profile 管理，一键切换。
 
 ```bash
-# 操作应用（chat/completion/workflow）用 app- 开头的 key
-dify-cli config init --api-key app-xxxx
+# 创建应用 profile
+dify-cli config new app
+dify-cli config init --api-key app-xxxx -p app
 
-# 操作知识库用 dataset- 开头的 key
-dify-cli config init --api-key dataset-xxxx
+# 创建知识库 profile
+dify-cli config new kb
+dify-cli config init --api-key dataset-xxxx -p kb
 
 # 自部署需指定 base-url
-dify-cli config init --api-key app-xxxx --base-url https://dify.example.com/v1
+dify-cli config init --api-key app-xxxx --base-url https://dify.example.com/v1 -p self
+
+# 切换 active profile
+dify-cli config use app
 ```
 
-> 切换操作对象时重新 `config init`，或用 `--api-key` 临时覆盖：
-> `dify-cli chat send "hello" --api-key app-xxxx`
-> `dify-cli knowledge list --api-key dataset-xxxx`
+> 临时覆盖：`dify-cli --profile kb knowledge list` 或 `dify-cli chat send "hello" --api-key app-xxxx`
 
 ### 2. Try It
 
@@ -78,31 +81,34 @@ dify-cli knowledge list
 | App Key | `app-` | `info`, `chat`, `completion`, `chatflow`, `workflow`, `conversation`, `file`, `audio`, `feedback`, `annotation` |
 | Dataset Key | `dataset-` | `knowledge` (datasets, documents, segments) |
 
-Config file (`~/.dify/config.json`) holds one key at a time. Switch by re-running `config init` or override per-command with `--api-key`.
+Config file (`~/.dify/config.json`) supports multiple named profiles. Switch with `dify-cli config use <name>` or `--profile <name>`. Override per-command with `--api-key`.
 
 ---
 
 ## Configuration
 
 ```bash
-# Initialize
-dify-cli config init --api-key <key> --base-url <url> --default-user <user>
+# Profile management
+dify-cli config new <name>               # Create a profile
+dify-cli config use <name>               # Switch active profile
+dify-cli config list                     # List all profiles
+dify-cli config show [-p <name>]         # Show profile config (masked)
+dify-cli config path                     # Show config file path
 
-# Set individual values
-dify-cli config set apiKey <key>
-dify-cli config set baseUrl https://api.dify.ai/v1
-
-# Get config
-dify-cli config get
-dify-cli config get apiKey
+# Profile setup
+dify-cli config init --api-key <key> --base-url <url> --default-user <user> [-p <name>]
+dify-cli config set apiKey <key> [-p <name>]
+dify-cli config set baseUrl https://api.dify.ai/v1 [-p <name>]
+dify-cli config get [key] [-p <name>]
 ```
 
-Priority: CLI flags > Environment variables > Config file
+Priority: CLI flags > Environment variables > Active profile
 
 ```
 DIFY_API_KEY       API key
 DIFY_BASE_URL      API base URL (default: https://api.dify.ai/v1)
 DIFY_DEFAULT_USER  User identifier (default: cli-user)
+DIFY_PROFILE       Active profile name
 ```
 
 ---
@@ -233,6 +239,7 @@ dify-cli annotation reply-config
 --api-key <key>      Override API key
 --base-url <url>     Override base URL
 --user <id>          User identifier (default: cli-user)
+-p, --profile <name> Use specified profile (overrides active)
 ```
 
 ---

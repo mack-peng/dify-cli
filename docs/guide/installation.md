@@ -59,7 +59,15 @@ Before creating a new key, check what's already configured:
 dify-cli config get
 ```
 
-If a key exists and you want to switch to the other type, skip to the override pattern below.
+If a key exists and you want to switch to the other type, use profile switching:
+```bash
+dify-cli config use <name>
+```
+
+Or list available profiles:
+```bash
+dify-cli config list
+```
 
 ---
 
@@ -74,23 +82,35 @@ Dify has **two types** of API keys. They are **not interchangeable**.
 
 The human needs to create the key in their Dify dashboard. Ask them for it.
 
-Then configure:
+Then configure. Prefer multi-profile for quick switching:
 
 ```bash
-# For app operations
-dify-cli config init --api-key app-xxxx
+# Create profiles for each key type
+dify-cli config new app
+dify-cli config new kb
 
-# For knowledge base operations
-dify-cli config init --api-key dataset-xxxx
+# Configure each profile
+dify-cli config init --api-key app-xxxx -p app
+dify-cli config init --api-key dataset-xxxx -p kb
 
 # If self-hosted
-dify-cli config init --api-key app-xxxx --base-url https://dify.example.com/v1
+dify-cli config init --api-key app-xxxx --base-url https://dify.example.com/v1 -p self
 
 # Optionally set a user identifier
-dify-cli config init --api-key app-xxxx --default-user bot-agent
+dify-cli config init --api-key app-xxxx --default-user bot-agent -p app
+
+# Switch active profile
+dify-cli config use app
 ```
 
-Config is stored at `~/.dify/config.json`. One key at a time. To switch without touching config, override per command:
+Config is stored at `~/.dify/config.json`. To use a specific profile without switching:
+
+```bash
+dify-cli --profile app chat send "hello"
+dify-cli --profile kb knowledge list
+```
+
+To override per-command without any profile:
 
 ```bash
 dify-cli chat send "hello" --api-key app-xxxx
@@ -104,9 +124,11 @@ dify-cli knowledge list --api-key dataset-xxxx
 ```bash
 # For app key
 dify-cli info
+dify-cli --profile app info
 
 # For dataset key
 dify-cli knowledge list
+dify-cli --profile kb knowledge list
 ```
 
 JSON output = it works. `401` = bad key or wrong base URL. `ENOTFOUND` = wrong base URL.
@@ -155,14 +177,15 @@ dify-cli knowledge retrieve <dataset_id> --query "test" --retrieval-model '{"sea
 export DIFY_API_KEY=app-xxxx
 export DIFY_BASE_URL=https://dify.example.com/v1
 export DIFY_DEFAULT_USER=bot-agent
+export DIFY_PROFILE=prod
 ```
 
 then run any command without `--api-key` / `--base-url`.
 
 **Priority** (highest to lowest):
-1. CLI flag: `--api-key <key>`
-2. Environment variable: `DIFY_API_KEY`
-3. Config file: `~/.dify/config.json`
+1. CLI flag: `--api-key <key>`, `--profile <name>`
+2. Environment variable: `DIFY_API_KEY`, `DIFY_PROFILE`
+3. Config file: active profile in `~/.dify/config.json`
 
 ---
 
@@ -194,7 +217,7 @@ dify-cli knowledge list | jq '.data[].name'
 For agents that trust copy-paste:
 
 ```bash
-npm install -g @orangemust/dify-cli && dify-cli config init --api-key app-xxxx && dify-cli info
+npm install -g @orangemust/dify-cli && dify-cli config new default && dify-cli config init --api-key app-xxxx -p default && dify-cli info
 ```
 
 Replace `app-xxxx` with the actual key. Humans can paste this and you handle the rest.
