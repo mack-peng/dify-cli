@@ -10,3 +10,4 @@ export { registerFileCommands } from './file';
 export { registerAudioCommands } from './audio';
 export { registerFeedbackCommands } from './feedback';
 export { registerAnnotationCommands } from './annotation';
+export { registerSkillCommands } from './skill';

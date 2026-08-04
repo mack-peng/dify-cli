@@ -17,6 +17,7 @@ import {
   registerAudioCommands,
   registerFeedbackCommands,
   registerAnnotationCommands,
+  registerSkillCommands,
 } from './commands';
 
 export function decorateProgram(program: Command): void {
@@ -41,4 +42,5 @@ export function decorateProgram(program: Command): void {
   registerAudioCommands(program);
   registerFeedbackCommands(program);
   registerAnnotationCommands(program);
+  registerSkillCommands(program);
 }
