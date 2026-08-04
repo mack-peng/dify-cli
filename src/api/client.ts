@@ -12,10 +12,12 @@ export class DifyClient {
   private _apiKey: string;
   private _baseUrl: string;
 
-  constructor(opts?: { apiKey?: string; baseUrl?: string }) {
+  constructor(opts?: { apiKey?: string; baseUrl?: string; profile?: string }) {
     const config = new ConfigManager();
-    this._apiKey = opts?.apiKey || process.env.DIFY_API_KEY || config.get('apiKey') || '';
-    this._baseUrl = opts?.baseUrl || process.env.DIFY_BASE_URL || config.get('baseUrl') || 'https://api.dify.ai/v1';
+    const profileName = opts?.profile || process.env.DIFY_PROFILE || config.getActiveProfileName();
+    const profile = config.getProfile(profileName) || {};
+    this._apiKey = opts?.apiKey || process.env.DIFY_API_KEY || profile.apiKey || '';
+    this._baseUrl = opts?.baseUrl || process.env.DIFY_BASE_URL || profile.baseUrl || 'https://api.dify.ai/v1';
   }
 
   get apiKey(): string {

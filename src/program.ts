@@ -26,7 +26,8 @@ export function decorateProgram(program: Command): void {
     .version(pkg.version)
     .option('--api-key <key>', 'Dify API key (overrides config and env)')
     .option('--base-url <url>', 'Dify API base URL (overrides config and env)')
-    .option('--user <id>', 'User identifier (default: cli-user)');
+    .option('--user <id>', 'User identifier (default: cli-user)')
+    .option('-p, --profile <name>', 'Profile to use (overrides active profile)');
 
   registerConfigCommands(program);
   registerInfoCommands(program);

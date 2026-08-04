@@ -10,7 +10,7 @@ export function resolveContext(command: Command): CommandContext {
   const opts = command.optsWithGlobals();
   return {
     user: opts.user || 'cli-user',
-    client: new DifyClient({ apiKey: opts.apiKey, baseUrl: opts.baseUrl }),
+    client: new DifyClient({ apiKey: opts.apiKey, baseUrl: opts.baseUrl, profile: opts.profile }),
   };
 }
 
