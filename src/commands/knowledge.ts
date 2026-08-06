@@ -10,10 +10,10 @@ function buildProcessRule(options: Record<string, any>): Record<string, any> | u
   const processRule: Record<string, any> = { mode: options.processRuleMode };
   if (options.processRuleMode === 'custom' || options.processRuleMode === 'hierarchical') {
     const rules: Record<string, any> = {};
-    const preProcessingRules: { id: string; enabled: boolean }[] = [];
-    if (options.removeExtraSpaces) preProcessingRules.push({ id: 'remove_extra_spaces', enabled: true });
-    if (options.removeUrlsEmails) preProcessingRules.push({ id: 'remove_urls_emails', enabled: true });
-    if (preProcessingRules.length > 0) rules.pre_processing_rules = preProcessingRules;
+    rules.pre_processing_rules = [
+      { id: 'remove_extra_spaces', enabled: options.removeExtraSpaces ?? false },
+      { id: 'remove_urls_emails', enabled: options.removeUrlsEmails ?? false },
+    ];
     const segmentation: Record<string, any> = {};
     if (options.separator !== undefined) segmentation.separator = options.separator;
     if (options.maxTokens !== undefined) segmentation.max_tokens = options.maxTokens;
@@ -29,7 +29,10 @@ function buildProcessRule(options: Record<string, any>): Record<string, any> | u
       if (Object.keys(subchunkSegmentation).length > 0) {
         rules.subchunk_segmentation = subchunkSegmentation;
       }
-      if (Object.keys(rules).length === 0) return undefined;
+      if (!rules.segmentation && !rules.parent_mode && !rules.subchunk_segmentation
+          && !options.removeExtraSpaces && !options.removeUrlsEmails) {
+        return undefined;
+      }
     }
     if (Object.keys(rules).length > 0) {
       processRule.rules = rules;
