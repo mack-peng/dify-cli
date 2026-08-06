@@ -8,18 +8,28 @@ import { resolveContext, safeJsonParse } from '../utils/context';
 function buildProcessRule(options: Record<string, any>): Record<string, any> | undefined {
   if (!options.processRuleMode) return undefined;
   const processRule: Record<string, any> = { mode: options.processRuleMode };
-  if (options.processRuleMode === 'custom') {
+  if (options.processRuleMode === 'custom' || options.processRuleMode === 'hierarchical') {
     const rules: Record<string, any> = {};
-    rules.pre_processing_rules = [
-      { id: 'remove_extra_spaces', enabled: options.removeExtraSpaces ?? false },
-      { id: 'remove_urls_emails', enabled: options.removeUrlsEmails ?? false },
-    ];
+    const preProcessingRules: { id: string; enabled: boolean }[] = [];
+    if (options.removeExtraSpaces) preProcessingRules.push({ id: 'remove_extra_spaces', enabled: true });
+    if (options.removeUrlsEmails) preProcessingRules.push({ id: 'remove_urls_emails', enabled: true });
+    if (preProcessingRules.length > 0) rules.pre_processing_rules = preProcessingRules;
     const segmentation: Record<string, any> = {};
     if (options.separator !== undefined) segmentation.separator = options.separator;
     if (options.maxTokens !== undefined) segmentation.max_tokens = options.maxTokens;
     if (options.overlap !== undefined) segmentation.chunk_overlap = options.overlap;
     if (Object.keys(segmentation).length > 0) {
       rules.segmentation = segmentation;
+    }
+    if (options.processRuleMode === 'hierarchical') {
+      if (options.hierarchicalParentMode) rules.parent_mode = options.hierarchicalParentMode;
+      const subchunkSegmentation: Record<string, any> = {};
+      if (options.hierarchicalSubchunkSeparator !== undefined) subchunkSegmentation.separator = options.hierarchicalSubchunkSeparator;
+      if (options.hierarchicalSubchunkMaxTokens !== undefined) subchunkSegmentation.max_tokens = options.hierarchicalSubchunkMaxTokens;
+      if (Object.keys(subchunkSegmentation).length > 0) {
+        rules.subchunk_segmentation = subchunkSegmentation;
+      }
+      if (Object.keys(rules).length === 0) return undefined;
     }
     if (Object.keys(rules).length > 0) {
       processRule.rules = rules;
@@ -157,7 +167,7 @@ export function registerKnowledgeCommands(program: Command): void {
     .requiredOption('--text <content>', 'Document text content')
     .option('--doc-type <type>', 'Document type')
     .option('--indexing-technique <technique>', 'Indexing technique (high_quality, economy)')
-    .option('--doc-form <form>', 'Document form (text_model, qa_model)')
+    .option('--doc-form <form>', 'Document form (text_model, qa_model, hierarchical_model)')
     .option('--doc-language <lang>', 'Document language')
     .option('--process-rule-mode <mode>', 'Process rule mode (automatic, custom, hierarchical)')
     .option('--separator <sep>', 'Chunk separator (e.g., "\\\\n")')
@@ -165,6 +175,9 @@ export function registerKnowledgeCommands(program: Command): void {
     .option('--overlap <n>', 'Chunk overlap', parseInt)
     .option('--remove-extra-spaces', 'Remove extra spaces (pre-processing)')
     .option('--remove-urls-emails', 'Remove URLs and email addresses (pre-processing)')
+    .option('--hierarchical-parent-mode <mode>', 'Parent mode for hierarchical (paragraph, full-doc)')
+    .option('--hierarchical-subchunk-separator <sep>', 'Subchunk separator for hierarchical')
+    .option('--hierarchical-subchunk-max-tokens <n>', 'Max tokens per subchunk', parseInt)
     .action(async (datasetId: string, options, command) => {
       const ctx = resolveContext(command);
       const api = new KnowledgeAPI(ctx.client);
@@ -193,7 +206,7 @@ export function registerKnowledgeCommands(program: Command): void {
     .requiredOption('--file <path>', 'File path')
     .option('--name <text>', 'Document name (defaults to filename)')
     .option('--indexing-technique <technique>', 'Indexing technique (high_quality, economy)')
-    .option('--doc-form <form>', 'Document form (text_model, qa_model)')
+    .option('--doc-form <form>', 'Document form (text_model, qa_model, hierarchical_model)')
     .option('--doc-language <lang>', 'Document language')
     .option('--process-rule-mode <mode>', 'Process rule mode (automatic, custom, hierarchical)')
     .option('--separator <sep>', 'Chunk separator (e.g., "\\\\n")')
@@ -201,6 +214,9 @@ export function registerKnowledgeCommands(program: Command): void {
     .option('--overlap <n>', 'Chunk overlap', parseInt)
     .option('--remove-extra-spaces', 'Remove extra spaces (pre-processing)')
     .option('--remove-urls-emails', 'Remove URLs and email addresses (pre-processing)')
+    .option('--hierarchical-parent-mode <mode>', 'Parent mode for hierarchical (paragraph, full-doc)')
+    .option('--hierarchical-subchunk-separator <sep>', 'Subchunk separator for hierarchical')
+    .option('--hierarchical-subchunk-max-tokens <n>', 'Max tokens per subchunk', parseInt)
     .action(async (datasetId: string, options, command) => {
       const ctx = resolveContext(command);
       const api = new KnowledgeAPI(ctx.client);

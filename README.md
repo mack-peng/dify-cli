@@ -200,6 +200,15 @@ dify-cli knowledge document get <dataset_id> <document_id>
 dify-cli knowledge document delete <dataset_id> <document_id>
 dify-cli knowledge document status <dataset_id> <batch>
 
+# Hierarchical documents (父子分段)
+dify-cli knowledge document create-text <dataset_id> --name "Doc" --text "content" --indexing-technique high_quality --doc-form hierarchical_model --process-rule-mode hierarchical
+dify-cli knowledge document create-text <dataset_id> --name "Doc" --text "content" --doc-form hierarchical_model --process-rule-mode hierarchical --separator "##" --max-tokens 3000
+dify-cli knowledge document create-text <dataset_id> --name "Doc" --text "content" --doc-form hierarchical_model --process-rule-mode hierarchical \
+  --separator "##" --max-tokens 3000 \
+  --hierarchical-parent-mode paragraph \
+  --hierarchical-subchunk-separator "***" --hierarchical-subchunk-max-tokens 1000
+dify-cli knowledge document create-file <dataset_id> --file ./doc.pdf --doc-form hierarchical_model --process-rule-mode hierarchical
+
 # Segments
 dify-cli knowledge segment list <dataset_id> <document_id>
 dify-cli knowledge segment create <dataset_id> <document_id> --content "text"
