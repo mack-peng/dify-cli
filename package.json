@@ -1,6 +1,6 @@
 {
   "name": "@orangemust/dify-cli",
-  "version": "0.2.9",
+  "version": "0.2.10",
   "description": "CLI for interacting with Dify applications",
   "author": "mack-peng",
   "license": "MIT",
