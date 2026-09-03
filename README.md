@@ -42,33 +42,33 @@ npm install -g @orangemust/dify-cli
 
 ### 1. Configure API Key
 
-Dify 有两种 API Key，**互不通用**。推荐用多 profile 管理，一键切换。
+Dify has two types of API keys that are **not interchangeable**. Use multi-profile management for quick switching.
 
 ```bash
-# 创建应用 profile
+# Create app profile
 dify-cli config new app
 dify-cli config init --api-key app-xxxx -p app
 
-# 创建知识库 profile
+# Create knowledge base profile
 dify-cli config new kb
 dify-cli config init --api-key dataset-xxxx -p kb
 
-# 自部署需指定 base-url
+# Self-hosted requires specifying base-url
 dify-cli config init --api-key app-xxxx --base-url https://dify.example.com/v1 -p self
 
-# 切换 active profile
+# Switch active profile
 dify-cli config use app
 ```
 
-> 临时覆盖：`dify-cli --profile kb knowledge list` 或 `dify-cli chat send "hello" --api-key app-xxxx`
+> Temporary override: `dify-cli --profile kb knowledge list` or `dify-cli chat send "hello" --api-key app-xxxx`
 
 ### 2. Try It
 
 ```bash
-# 如果配了 app key
+# If configured with app key
 dify-cli info
 
-# 如果配了 dataset key
+# If configured with dataset key
 dify-cli knowledge list
 ```
 
@@ -115,21 +115,21 @@ DIFY_PROFILE       Active profile name
 
 ## Agent Skill
 
-让 AI agent 学会使用 dify-cli：
+Teach AI agents to use dify-cli:
 
 ```bash
-# 安装到所有 agent 技能目录
+# Install to all agent skill directories
 dify-cli skill-install
 
-# 安装到指定 agent
+# Install to a specific agent
 dify-cli skill-install --target opencode
 dify-cli skill-install --target claude
 
-# 卸载
+# Uninstall
 dify-cli skill-uninstall
 ```
 
-支持 target: `auto` (默认), `all`, `opencode`, `claude`, `codex`, `cursor`, `hermes`, `gemini`。
+Supported targets: `auto` (default), `all`, `opencode`, `claude`, `codex`, `cursor`, `hermes`, `gemini`.
 
 ---
 
@@ -200,7 +200,7 @@ dify-cli knowledge document get <dataset_id> <document_id>
 dify-cli knowledge document delete <dataset_id> <document_id>
 dify-cli knowledge document status <dataset_id> <batch>
 
-# Hierarchical documents (父子分段)
+# Hierarchical documents (parent-child segments)
 dify-cli knowledge document create-text <dataset_id> --name "Doc" --text "content" --indexing-technique high_quality --doc-form hierarchical_model --process-rule-mode hierarchical
 dify-cli knowledge document create-text <dataset_id> --name "Doc" --text "content" --doc-form hierarchical_model --process-rule-mode hierarchical --separator "##" --max-tokens 3000
 dify-cli knowledge document create-text <dataset_id> --name "Doc" --text "content" --doc-form hierarchical_model --process-rule-mode hierarchical \
